@@ -6,6 +6,8 @@ local lp = game:GetService("Players").LocalPlayer
 
 if CoreGui:FindFirstChild("http_attack") then CoreGui.http_attack:Destroy() end
 
+print("vvvvv")
+
 local State = {
     Visible = true,
     CurrentTab = "Rage",
@@ -325,7 +327,7 @@ local exploitContent = CreateExpandable(exploitsPage, "Exploits", State.Exploits
 AddCheckbox(exploitContent, "No Fall Damage", State.Exploits, "NoFallDamage")
 AddCheckbox(exploitContent, "Block Pivot (Anti-Ban)", State.Exploits, "BlockPivot")
 
-local foodExploitContent = CreateExpandable(exploitsPage, "Master Food", State.Exploits, "FoodEnabled", 60)
+local foodExploitContent = CreateExpandable(exploitsPage, "Master Food", State.Exploits, "FoodEnabled", 100)
 local foodNutricsBtn = Instance.new("TextButton", foodExploitContent)
 foodNutricsBtn.Size = UDim2.new(1, 0, 0, 32)
 foodNutricsBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
@@ -336,6 +338,19 @@ foodNutricsBtn.TextSize = 12
 foodNutricsBtn.TextXAlignment = Enum.TextXAlignment.Left
 foodNutricsBtn.MouseButton1Click:Connect(function()
     local args = {workspace:WaitForChild("Food"):WaitForChild("Corpse")}
+    game:GetService("ReplicatedStorage"):WaitForChild("Eat"):FireServer(unpack(args))
+end)
+
+local grassNutricsBtn = Instance.new("TextButton", foodExploitContent)
+grassNutricsBtn.Size = UDim2.new(1, 0, 0, 32)
+grassNutricsBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+grassNutricsBtn.Text = "  Grass + Nutrics"
+grassNutricsBtn.Font = Enum.Font.Code
+grassNutricsBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+grassNutricsBtn.TextSize = 12
+grassNutricsBtn.TextXAlignment = Enum.TextXAlignment.Left
+grassNutricsBtn.MouseButton1Click:Connect(function()
+    local args = {workspace:WaitForChild("Food"):WaitForChild("EdibleBush")}
     game:GetService("ReplicatedStorage"):WaitForChild("Eat"):FireServer(unpack(args))
 end)
 
@@ -814,8 +829,9 @@ local function createESP(player)
             
             if State.ESP.ShowHP and character:FindFirstChild("Humanoid") then
                 local hum = character.Humanoid
-                local hpPercent = (hum.Health / hum.MaxHealth) * 100
-                table.insert(lines, string.format("HP: %.0f%%", hpPercent))
+                local hpPercent = hum.Health / hum.MaxHealth
+                local actualHP = math.floor(hpPercent * 1000)
+                table.insert(lines, string.format("HP: %d (%.1f%%)", actualHP, hpPercent * 100))
             end
             
             if State.ESP.ShowBlood then
