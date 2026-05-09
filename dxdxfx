@@ -1,1 +1,1009 @@
-1123321
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local lp = game:GetService("Players").LocalPlayer
+
+if CoreGui:FindFirstChild("http_attack") then CoreGui.http_attack:Destroy() end
+
+print("vvvvv")
+
+local State = {
+    Visible = true,
+    CurrentTab = "Rage",
+    Bind = Enum.KeyCode.RightShift,
+    Unloaded = false,
+    Hitbox = {Enabled = false, X = 20, Y = 20, Z = 20, Transparency = 0.7},
+    ESP = {
+        Enabled = false,
+        MaxDistance = 1500,
+        ShowPlayerName = false,
+        ShowDinoName = false,
+        ShowGrowth = false,
+        ShowHP = false,
+        ShowBlood = false,
+        ShowHunger = false,
+        ShowThirst = false,
+        ShowEnergy = false,
+        ShowOxygen = false,
+        ShowHeadFracture = false,
+        ShowLegFracture = false,
+        ShowStress = false
+    },
+    FoodESP = {
+        Enabled = false,
+        Fish = {Enabled = false, MaxDistance = 1000, ShowDistance = false, ShowName = false, ShowMeat = false, ShowSize = false},
+        Meat = {Enabled = false, MaxDistance = 1000, ShowDistance = false, ShowMeat = false},
+        Dinos = {
+            Enabled = false, 
+            MaxDistance = 1000, 
+            ShowDistance = false,
+            ShowName = false, 
+            ShowMeat = false, 
+            ShowSize = false,
+            Filters = {
+                Achelousaurus = false, Achillobator = false, Beishanlong = false, Ceratosaurus = false,
+                Cipactli = false, Concavenator = false, Cryolophosaurus = false, Dilophosaurus = false,
+                Fabrosaurus = false, Gallimimus = false, Hematophaganax = false, Jakapil = false,
+                Lambeosaurus = false, Luxerii = false, Magnoris = false, Maiasaura = false,
+                Malusuchus = false, Microraptor = false, Miragaia = false, Nosferatu = false,
+                Nosferudo = false, Omnivora = false, Pachycephalosaurus = false, Papiasaurus = false,
+                Parasaurolophus = false, Piravenator = false, Psittacosaurus = false, Rugops = false,
+                Siamotyrannus = false, Simosuchus = false, Udanoceratops = false
+            }
+        }
+    },
+    Exploits = {
+        NoFallDamage = false,
+        BlockPivot = false,
+        FoodEnabled = false
+    },
+    World = {
+        Enabled = false,
+        Atmosphere = {
+            Enabled = false,
+            Density = 0.5,
+            Offset = 0.25,
+            Haze = 0
+        },
+        ColorCorrection = {
+            Enabled = false,
+            Brightness = 0,
+            Contrast = 0,
+            Saturation = 0
+        },
+        Blur = {
+            Enabled = false,
+            Size = 0
+        },
+        Bloom = {
+            Enabled = false,
+            Intensity = 0,
+            Size = 24,
+            Threshold = 1
+        },
+        TimeOfDay = {
+            Enabled = false,
+            Hour = 12
+        }
+    }
+}
+
+local Connections = {}
+
+local Gui = Instance.new("ScreenGui", CoreGui)
+Gui.Name = "http_attack"
+Gui.DisplayOrder = 999
+
+local Main = Instance.new("Frame", Gui)
+Main.Size = UDim2.new(0, 420, 0, 450)
+Main.Position = UDim2.new(0.5, -210, 0.5, -225)
+Main.BackgroundColor3 = Color3.fromRGB(12, 12, 14)
+Main.BorderSizePixel = 0
+Main.Visible = State.Visible
+
+local Stroke = Instance.new("UIStroke", Main)
+Stroke.Color = Color3.fromRGB(0, 170, 255)
+Stroke.Thickness = 1
+
+local Header = Instance.new("Frame", Main)
+Header.Size = UDim2.new(1, 0, 0, 32)
+Header.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+Header.BorderSizePixel = 0
+Header.Active = true
+
+local Title = Instance.new("TextLabel", Header)
+Title.Size = UDim2.new(1, -10, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Text = ".http attack | mesozoico"
+Title.TextColor3 = Color3.fromRGB(0, 170, 255)
+Title.Font = Enum.Font.Code
+Title.TextSize = 15
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.BackgroundTransparency = 1
+Title.Active = false
+
+local TabFrame = Instance.new("Frame", Main)
+TabFrame.Size = UDim2.new(0, 100, 1, -32)
+TabFrame.Position = UDim2.new(0, 0, 0, 32)
+TabFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+TabFrame.BorderSizePixel = 0
+
+local TabLayout = Instance.new("UIListLayout", TabFrame)
+TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabLayout.Padding = UDim.new(0, 0)
+
+local PageContainer = Instance.new("Frame", Main)
+PageContainer.Size = UDim2.new(1, -110, 1, -42)
+PageContainer.Position = UDim2.new(0, 105, 0, 37)
+PageContainer.BackgroundTransparency = 1
+
+local Pages = {}
+local TabButtons = {}
+
+local function CreatePage(name)
+    local Page = Instance.new("ScrollingFrame", PageContainer)
+    Page.Size = UDim2.new(1, 0, 1, 0)
+    Page.BackgroundTransparency = 1
+    Page.Visible = (name == State.CurrentTab)
+    Page.ScrollBarThickness = 0
+    Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Instance.new("UIListLayout", Page).Padding = UDim.new(0, 5)
+    
+    Pages[name] = Page
+    
+    local TabBtn = Instance.new("TextButton", TabFrame)
+    TabBtn.Size = UDim2.new(1, 0, 0, 40)
+    TabBtn.BackgroundTransparency = 1
+    TabBtn.Text = name:upper()
+    TabBtn.Font = Enum.Font.Code
+    TabBtn.TextColor3 = (name == State.CurrentTab) and Color3.new(1,1,1) or Color3.fromRGB(100,100,100)
+    TabBtn.TextSize = 13
+    
+    TabBtn.MouseButton1Click:Connect(function()
+        for n, p in pairs(Pages) do p.Visible = (n == name) end
+        for n, b in pairs(TabButtons) do b.TextColor3 = (n == name) and Color3.new(1,1,1) or Color3.fromRGB(100,100,100) end
+        State.CurrentTab = name
+    end)
+    
+    TabButtons[name] = TabBtn
+    return Page
+end
+
+local function CreateExpandable(parent, text, state_obj, state_key, height)
+    local Container = Instance.new("Frame", parent)
+    Container.Size = UDim2.new(1, 0, 0, 32)
+    Container.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+    Container.BorderSizePixel = 0
+    Container.ClipsDescendants = true
+    
+    local Btn = Instance.new("TextButton", Container)
+    Btn.Size = UDim2.new(1, 0, 0, 32)
+    Btn.BackgroundTransparency = 1
+    Btn.Text = "  [+] " .. text:lower()
+    Btn.Font = Enum.Font.Code
+    Btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Btn.TextSize = 13
+    Btn.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local Inner = Instance.new("ScrollingFrame", Container)
+    Inner.Position = UDim2.new(0, 10, 0, 35)
+    Inner.Size = UDim2.new(1, -15, 0, height)
+    Inner.BackgroundTransparency = 1
+    Inner.ScrollBarThickness = 4
+    Inner.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Inner.CanvasSize = UDim2.new(0, 0, 0, 0)
+    local layout = Instance.new("UIListLayout", Inner)
+    layout.Padding = UDim.new(0, 5)
+    
+    Btn.MouseButton1Click:Connect(function()
+        state_obj[state_key] = not state_obj[state_key]
+        local targetSize = state_obj[state_key] and UDim2.new(1, 0, 0, height + 40) or UDim2.new(1, 0, 0, 32)
+        TweenService:Create(Container, TweenInfo.new(0.3), {Size = targetSize}):Play()
+        Btn.Text = state_obj[state_key] and "  [-] " .. text:lower() or "  [+] " .. text:lower()
+    end)
+    return Inner
+end
+
+local function AddCheckbox(parent, text, state_obj, state_key)
+    local Btn = Instance.new("TextButton", parent)
+    Btn.Size = UDim2.new(1, 0, 0, 25)
+    Btn.BackgroundTransparency = 1
+    Btn.Text = (state_obj[state_key] and "[x] " or "[ ] ") .. text:lower()
+    Btn.Font = Enum.Font.Code
+    Btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    Btn.TextSize = 11
+    Btn.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local function updateText()
+        Btn.Text = (state_obj[state_key] and "[x] " or "[ ] ") .. text:lower()
+    end
+    
+    Btn.MouseButton1Click:Connect(function()
+        state_obj[state_key] = not state_obj[state_key]
+        updateText()
+    end)
+    
+    return Btn
+end
+
+local function AddSlider(parent, text, min, max, default, callback)
+    local Frame = Instance.new("Frame", parent)
+    Frame.Size = UDim2.new(1, 0, 0, 40)
+    Frame.BackgroundTransparency = 1
+    local Lbl = Instance.new("TextLabel", Frame)
+    Lbl.Size = UDim2.new(1, 0, 0, 15); Lbl.Text = text.." -> "..default; Lbl.Font = Enum.Font.Code; Lbl.TextColor3 = Color3.fromRGB(150,150,150); Lbl.TextSize = 11; Lbl.TextXAlignment = 0; Lbl.BackgroundTransparency = 1
+    local Bar = Instance.new("Frame", Frame)
+    Bar.Size = UDim2.new(1, -5, 0, 2); Bar.Position = UDim2.new(0,0,0,22); Bar.BackgroundColor3 = Color3.fromRGB(40,40,45); Bar.BorderSizePixel = 0
+    local Fill = Instance.new("Frame", Bar)
+    Fill.Size = UDim2.new((default-min)/(max-min),0,1,0); Fill.BackgroundColor3 = Color3.fromRGB(0,170,255); Fill.BorderSizePixel = 0
+    local function Update(input)
+        local pos = math.clamp((input.Position.X - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X, 0, 1)
+        Fill.Size = UDim2.new(pos, 0, 1, 0)
+        local val = min + (max-min)*pos
+        val = (max <= 1) and math.floor(val*10)/10 or math.floor(val)
+        Lbl.Text = text.." -> "..val; callback(val)
+    end
+    Bar.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then local m = UserInputService.InputChanged:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseMovement then Update(i) end end) Update(i) UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then m:Disconnect() end end) end end)
+end
+
+local ragePage = CreatePage("Rage")
+local visualPage = CreatePage("Visuals")
+local exploitsPage = CreatePage("Exploits")
+local miscPage = CreatePage("Misc")
+local configPage = CreatePage("Config")
+
+local hitContent = CreateExpandable(ragePage, "Hitbox Expander", State.Hitbox, "Enabled", 160)
+AddSlider(hitContent, "size x", 1, 100, 20, function(v) State.Hitbox.X = v end)
+AddSlider(hitContent, "size y", 1, 100, 20, function(v) State.Hitbox.Y = v end)
+AddSlider(hitContent, "size z", 1, 100, 20, function(v) State.Hitbox.Z = v end)
+AddSlider(hitContent, "transparency", 0, 1, 0.7, function(v) State.Hitbox.Transparency = v end)
+
+local espContent = CreateExpandable(visualPage, "Master ESP", State.ESP, "Enabled", 400)
+AddSlider(espContent, "max distance (m)", 100, 15000, 1500, function(v) State.ESP.MaxDistance = v end)
+AddCheckbox(espContent, "Show Player Name", State.ESP, "ShowPlayerName")
+AddCheckbox(espContent, "Show Dino Name", State.ESP, "ShowDinoName")
+AddCheckbox(espContent, "Show Growth", State.ESP, "ShowGrowth")
+AddCheckbox(espContent, "Show HP", State.ESP, "ShowHP")
+AddCheckbox(espContent, "Show Blood", State.ESP, "ShowBlood")
+AddCheckbox(espContent, "Show Hunger", State.ESP, "ShowHunger")
+AddCheckbox(espContent, "Show Thirst", State.ESP, "ShowThirst")
+AddCheckbox(espContent, "Show Energy", State.ESP, "ShowEnergy")
+AddCheckbox(espContent, "Show Oxygen", State.ESP, "ShowOxygen")
+AddCheckbox(espContent, "Show Head Fracture", State.ESP, "ShowHeadFracture")
+AddCheckbox(espContent, "Show Leg Fracture", State.ESP, "ShowLegFracture")
+AddCheckbox(espContent, "Show Stress", State.ESP, "ShowStress")
+
+local foodESPContent = CreateExpandable(visualPage, "Master Food ESP", State.FoodESP, "Enabled", 1200)
+
+local fishContent = CreateExpandable(foodESPContent, "Fish", State.FoodESP.Fish, "Enabled", 145)
+AddSlider(fishContent, "max distance (m)", 25, 1250, 250, function(v) State.FoodESP.Fish.MaxDistance = v * 4 end)
+AddCheckbox(fishContent, "Show Distance", State.FoodESP.Fish, "ShowDistance")
+AddCheckbox(fishContent, "Show Creature Name", State.FoodESP.Fish, "ShowName")
+AddCheckbox(fishContent, "Show Meat Amount", State.FoodESP.Fish, "ShowMeat")
+AddCheckbox(fishContent, "Show Corpse Size (bug)", State.FoodESP.Fish, "ShowSize")
+
+local meatContent = CreateExpandable(foodESPContent, "Meat", State.FoodESP.Meat, "Enabled", 90)
+AddSlider(meatContent, "max distance (m)", 25, 1250, 250, function(v) State.FoodESP.Meat.MaxDistance = v * 4 end)
+AddCheckbox(meatContent, "Show Distance", State.FoodESP.Meat, "ShowDistance")
+AddCheckbox(meatContent, "Show Meat Amount", State.FoodESP.Meat, "ShowMeat")
+
+local dinosContent = CreateExpandable(foodESPContent, "Dinos", State.FoodESP.Dinos, "Enabled", 950)
+AddSlider(dinosContent, "max distance (m)", 25, 1250, 250, function(v) State.FoodESP.Dinos.MaxDistance = v * 4 end)
+AddCheckbox(dinosContent, "Show Distance", State.FoodESP.Dinos, "ShowDistance")
+AddCheckbox(dinosContent, "Show Creature Name", State.FoodESP.Dinos, "ShowName")
+AddCheckbox(dinosContent, "Show Meat Amount", State.FoodESP.Dinos, "ShowMeat")
+AddCheckbox(dinosContent, "Show Corpse Size", State.FoodESP.Dinos, "ShowSize")
+
+local dinoFilters = {"Achelousaurus", "Achillobator", "Beishanlong", "Ceratosaurus", "Cipactli", "Concavenator", "Cryolophosaurus", "Dilophosaurus", "Fabrosaurus", "Gallimimus", "Hematophaganax", "Jakapil", "Lambeosaurus", "Luxerii", "Magnoris", "Maiasaura", "Malusuchus", "Microraptor", "Miragaia", "Nosferatu", "Nosferudo", "Omnivora", "Pachycephalosaurus", "Papiasaurus", "Parasaurolophus", "Piravenator", "Psittacosaurus", "Rugops", "Siamotyrannus", "Simosuchus", "Udanoceratops"}
+for _, dino in ipairs(dinoFilters) do
+    AddCheckbox(dinosContent, dino, State.FoodESP.Dinos.Filters, dino)
+end
+
+local worldContent = CreateExpandable(visualPage, "Master World", State.World, "Enabled", 600)
+
+local atmContent = CreateExpandable(worldContent, "Atmosphere", State.World.Atmosphere, "Enabled", 130)
+AddSlider(atmContent, "density", 0, 1, 0.5, function(v) State.World.Atmosphere.Density = v end)
+AddSlider(atmContent, "offset", 0, 1, 0.25, function(v) State.World.Atmosphere.Offset = v end)
+AddSlider(atmContent, "haze", 0, 5, 0, function(v) State.World.Atmosphere.Haze = v end)
+
+local ccContent = CreateExpandable(worldContent, "Color Correction", State.World.ColorCorrection, "Enabled", 130)
+AddSlider(ccContent, "brightness", -1, 1, 0, function(v) State.World.ColorCorrection.Brightness = v end)
+AddSlider(ccContent, "contrast", -1, 1, 0, function(v) State.World.ColorCorrection.Contrast = v end)
+AddSlider(ccContent, "saturation", -1, 1, 0, function(v) State.World.ColorCorrection.Saturation = v end)
+
+local blurContent = CreateExpandable(worldContent, "Blur", State.World.Blur, "Enabled", 50)
+AddSlider(blurContent, "size", 0, 56, 0, function(v) State.World.Blur.Size = v end)
+
+local bloomContent = CreateExpandable(worldContent, "Bloom", State.World.Bloom, "Enabled", 130)
+AddSlider(bloomContent, "intensity", 0, 5, 0, function(v) State.World.Bloom.Intensity = v end)
+AddSlider(bloomContent, "size", 0, 56, 24, function(v) State.World.Bloom.Size = v end)
+AddSlider(bloomContent, "threshold", 0, 5, 1, function(v) State.World.Bloom.Threshold = v end)
+
+local todContent = CreateExpandable(worldContent, "Time of Day", State.World.TimeOfDay, "Enabled", 50)
+AddSlider(todContent, "hour", 0, 24, 12, function(v) State.World.TimeOfDay.Hour = v end)
+
+local exploitContent = CreateExpandable(exploitsPage, "Exploits", State.Exploits, "Enabled", 60)
+AddCheckbox(exploitContent, "No Fall Damage", State.Exploits, "NoFallDamage")
+AddCheckbox(exploitContent, "Block Pivot (Anti-Ban)", State.Exploits, "BlockPivot")
+
+local foodExploitContent = CreateExpandable(exploitsPage, "Master Food", State.Exploits, "FoodEnabled", 100)
+local foodNutricsBtn = Instance.new("TextButton", foodExploitContent)
+foodNutricsBtn.Size = UDim2.new(1, 0, 0, 32)
+foodNutricsBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+foodNutricsBtn.Text = "  Food + Nutrics"
+foodNutricsBtn.Font = Enum.Font.Code
+foodNutricsBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+foodNutricsBtn.TextSize = 12
+foodNutricsBtn.TextXAlignment = Enum.TextXAlignment.Left
+foodNutricsBtn.MouseButton1Click:Connect(function()
+    local args = {workspace:WaitForChild("Food"):WaitForChild("Corpse")}
+    game:GetService("ReplicatedStorage"):WaitForChild("Eat"):FireServer(unpack(args))
+end)
+
+local grassNutricsBtn = Instance.new("TextButton", foodExploitContent)
+grassNutricsBtn.Size = UDim2.new(1, 0, 0, 32)
+grassNutricsBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+grassNutricsBtn.Text = "  Grass + Nutrics"
+grassNutricsBtn.Font = Enum.Font.Code
+grassNutricsBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+grassNutricsBtn.TextSize = 12
+grassNutricsBtn.TextXAlignment = Enum.TextXAlignment.Left
+grassNutricsBtn.MouseButton1Click:Connect(function()
+    local args = {workspace:WaitForChild("Food"):WaitForChild("EdibleBush")}
+    game:GetService("ReplicatedStorage"):WaitForChild("Eat"):FireServer(unpack(args))
+end)
+
+local function createFoodESP()
+    local ws = game:GetService("Workspace")
+    local foodMarkers = {}
+    
+    local function setupFoodMarker(obj, foodType)
+        if State.Unloaded then return end
+        
+        local primaryPart = obj:FindFirstChild("MainMeat") or obj:FindFirstChildWhichIsA("BasePart")
+        if not primaryPart then return end
+        
+        local b = Instance.new("BillboardGui", primaryPart)
+        b.Name = "FoodESP"
+        b.Adornee = primaryPart
+        b.Size = UDim2.new(0, 200, 0, 100)
+        b.StudsOffset = Vector3.new(0, 3, 0)
+        b.AlwaysOnTop = true
+        b.Enabled = false
+        
+        local l = Instance.new("TextLabel", b)
+        l.BackgroundTransparency = 1
+        l.Size = UDim2.new(1, 0, 1, 0)
+        l.TextColor3 = Color3.new(1, 1, 0)
+        l.TextSize = 12
+        l.Font = Enum.Font.Code
+        l.TextYAlignment = Enum.TextYAlignment.Top
+        l.TextXAlignment = Enum.TextXAlignment.Left
+        
+        foodMarkers[obj] = {billboard = b, label = l, foodType = foodType, part = primaryPart}
+    end
+    
+    local function scanFood()
+        if ws:FindFirstChild("Fish") then
+            for _, fish in pairs(ws.Fish:GetChildren()) do
+                if not fish:FindFirstChild("FoodESP") and not foodMarkers[fish] then
+                    setupFoodMarker(fish, "fish")
+                end
+            end
+        end
+        
+        if ws:FindFirstChild("Food") then
+            for _, food in pairs(ws.Food:GetChildren()) do
+                if not food:FindFirstChild("FoodESP") and not foodMarkers[food] then
+                    local hasCreatureName = food:FindFirstChild("CreatureName")
+                    if hasCreatureName then
+                        setupFoodMarker(food, "dino")
+                    else
+                        setupFoodMarker(food, "meat")
+                    end
+                end
+            end
+        end
+    end
+    
+    scanFood()
+    
+    task.spawn(function()
+        while not State.Unloaded do
+            task.wait(10)
+            scanFood()
+        end
+    end)
+    
+    if ws:FindFirstChild("Fish") then
+        ws.Fish.ChildAdded:Connect(function(child)
+            task.wait(0.1)
+            setupFoodMarker(child, "fish")
+        end)
+    end
+    
+    if ws:FindFirstChild("Food") then
+        ws.Food.ChildAdded:Connect(function(child)
+            task.wait(0.1)
+            local hasCreatureName = child:FindFirstChild("CreatureName")
+            if hasCreatureName then
+                setupFoodMarker(child, "dino")
+            else
+                setupFoodMarker(child, "meat")
+            end
+        end)
+    end
+    
+    local lastUpdate = 0
+    local updateInterval = 0.5
+    local c = RunService.RenderStepped:Connect(function()
+        if State.Unloaded then 
+            c:Disconnect()
+            return 
+        end
+        
+        local now = tick()
+        if now - lastUpdate < updateInterval then return end
+        lastUpdate = now
+        
+        if not lp.Character or not lp.Character:FindFirstChild("HumanoidRootPart") then return end
+        local playerPos = lp.Character.HumanoidRootPart.Position
+        
+        for obj, data in pairs(foodMarkers) do
+            if not obj.Parent or not data.billboard.Parent then
+                if data.billboard.Parent then data.billboard:Destroy() end
+                foodMarkers[obj] = nil
+            else
+                local dist = (playerPos - data.part.Position).Magnitude
+                local shouldShow = false
+                local lines = {}
+                local foodType = data.foodType
+                
+                if foodType == "fish" and State.FoodESP.Fish.Enabled then
+                    if dist <= State.FoodESP.Fish.MaxDistance then
+                        shouldShow = true
+                        if State.FoodESP.Fish.ShowDistance then
+                            table.insert(lines, string.format("%.1fm", dist / 4))
+                        end
+                        if State.FoodESP.Fish.ShowName and obj:FindFirstChild("CreatureName") then
+                            table.insert(lines, obj.CreatureName.Value)
+                        end
+                        if State.FoodESP.Fish.ShowMeat then
+                            local meat = obj:FindFirstChild("Meat")
+                            local maxMeat = obj:FindFirstChild("MaxMeat")
+                            if meat and maxMeat then
+                                table.insert(lines, string.format("%d/%d", math.floor(meat.Value), math.floor(maxMeat.Value)))
+                            end
+                        end
+                        if State.FoodESP.Fish.ShowSize and obj:FindFirstChild("CorpseSize") then
+                            table.insert(lines, string.format("Size: %.1f", obj.CorpseSize.Value))
+                        end
+                    end
+                elseif foodType == "meat" and State.FoodESP.Meat.Enabled then
+                    if dist <= State.FoodESP.Meat.MaxDistance then
+                        shouldShow = true
+                        if State.FoodESP.Meat.ShowDistance then
+                            table.insert(lines, string.format("%.1fm", dist / 4))
+                        end
+                        if State.FoodESP.Meat.ShowMeat and obj:FindFirstChild("Meat") then
+                            table.insert(lines, string.format("%d/10", math.floor(obj.Meat.Value)))
+                        end
+                    end
+                elseif foodType == "dino" and State.FoodESP.Dinos.Enabled then
+                    if dist <= State.FoodESP.Dinos.MaxDistance then
+                        local creatureName = obj:FindFirstChild("CreatureName")
+                        if creatureName then
+                            local fullName = creatureName.Value
+                            local baseName = nil
+                            
+                            for filterName, enabled in pairs(State.FoodESP.Dinos.Filters) do
+                                if enabled and fullName:find(filterName) then
+                                    baseName = filterName
+                                    break
+                                end
+                            end
+                            
+                            if baseName then
+                                shouldShow = true
+                                if State.FoodESP.Dinos.ShowDistance then
+                                    table.insert(lines, string.format("%.1fm", dist / 4))
+                                end
+                                if State.FoodESP.Dinos.ShowName then
+                                    table.insert(lines, baseName)
+                                end
+                                if State.FoodESP.Dinos.ShowMeat then
+                                    local meat = obj:FindFirstChild("Meat")
+                                    local maxMeat = obj:FindFirstChild("MaxMeat")
+                                    if meat and maxMeat then
+                                        table.insert(lines, string.format("%d/%d", math.floor(meat.Value), math.floor(maxMeat.Value)))
+                                    end
+                                end
+                                if State.FoodESP.Dinos.ShowSize and obj:FindFirstChild("CorpseSize") then
+                                    table.insert(lines, string.format("Size: %.1f", obj.CorpseSize.Value))
+                                end
+                            end
+                        end
+                    end
+                end
+                
+                data.billboard.Enabled = shouldShow
+                if shouldShow then
+                    data.label.Text = table.concat(lines, "\n")
+                end
+            end
+        end
+    end)
+    table.insert(Connections, c)
+end
+
+task.spawn(createFoodESP)
+
+local bindBtn = Instance.new("TextButton", miscPage)
+bindBtn.Size = UDim2.new(1, 0, 0, 32); bindBtn.BackgroundColor3 = Color3.fromRGB(20,20,24); bindBtn.Text = "  bind: "..State.Bind.Name:lower(); bindBtn.Font = Enum.Font.Code; bindBtn.TextColor3 = Color3.new(0.8,0.8,0.8); bindBtn.TextSize = 13; bindBtn.TextXAlignment = 0
+bindBtn.MouseButton1Click:Connect(function()
+    bindBtn.Text = "  bind: [...]"
+    local con; con = UserInputService.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.Keyboard then
+            State.Bind = i.KeyCode
+            bindBtn.Text = "  bind: "..i.KeyCode.Name:lower()
+            con:Disconnect()
+        end
+    end)
+end)
+
+local unhookBtn = Instance.new("TextButton", miscPage)
+unhookBtn.Size = UDim2.new(1, 0, 0, 32); unhookBtn.BackgroundColor3 = Color3.fromRGB(40,20,20); unhookBtn.Text = "  unhook script"; unhookBtn.Font = Enum.Font.Code; unhookBtn.TextColor3 = Color3.new(1,0.4,0.4); unhookBtn.TextSize = 13; unhookBtn.TextXAlignment = 0
+unhookBtn.MouseButton1Click:Connect(function()
+    State.Unloaded = true
+    
+    for _, conn in pairs(Connections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player.Character then
+            local esp = player.Character:FindFirstChild("Head")
+            if esp then
+                local billboard = esp:FindFirstChild("DinoESP")
+                if billboard then billboard:Destroy() end
+            end
+        end
+    end
+    
+    local ws = game:GetService("Workspace")
+    if ws:FindFirstChild("Fish") then
+        for _, fish in pairs(ws.Fish:GetChildren()) do
+            local billboard = fish:FindFirstChildWhichIsA("BasePart")
+            if billboard then
+                local esp = billboard:FindFirstChild("FoodESP")
+                if esp then esp:Destroy() end
+            end
+        end
+    end
+    
+    if ws:FindFirstChild("Food") then
+        for _, food in pairs(ws.Food:GetChildren()) do
+            local billboard = food:FindFirstChildWhichIsA("BasePart")
+            if billboard then
+                local esp = billboard:FindFirstChild("FoodESP")
+                if esp then esp:Destroy() end
+            end
+        end
+    end
+    
+    if lp.Character and lp.Character:FindFirstChild("AttackPart") then
+        local ap = lp.Character.AttackPart
+        ap.Transparency = 1
+    end
+    
+    Gui:Destroy()
+end)
+
+local HttpService = game:GetService("HttpService")
+local configFolder = ".http attack"
+local selectedConfig = ""
+
+local configNameBox = Instance.new("TextBox", configPage)
+configNameBox.Size = UDim2.new(1, 0, 0, 32)
+configNameBox.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+configNameBox.BorderSizePixel = 0
+configNameBox.Text = "  config name..."
+configNameBox.TextColor3 = Color3.fromRGB(180, 180, 180)
+configNameBox.Font = Enum.Font.Code
+configNameBox.TextSize = 12
+configNameBox.TextXAlignment = Enum.TextXAlignment.Left
+configNameBox.ClearTextOnFocus = false
+
+local configListFrame = Instance.new("ScrollingFrame", configPage)
+configListFrame.Size = UDim2.new(1, 0, 0, 200)
+configListFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+configListFrame.BorderSizePixel = 0
+configListFrame.ScrollBarThickness = 4
+configListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Instance.new("UIListLayout", configListFrame).Padding = UDim.new(0, 2)
+
+local function saveConfig(name)
+    if name == "" or name == "  config name..." then return end
+    local data = HttpService:JSONEncode(State)
+    writefile(configFolder .. "/" .. name .. ".json", data)
+end
+
+local function loadConfig(name)
+    if name == "" then return end
+    local success, data = pcall(function()
+        return readfile(configFolder .. "/" .. name .. ".json")
+    end)
+    if success then
+        local decoded = HttpService:JSONDecode(data)
+        for k, v in pairs(decoded) do
+            if k ~= "Unloaded" and k ~= "Visible" and k ~= "CurrentTab" and k ~= "Bind" then
+                State[k] = v
+            end
+        end
+    end
+end
+
+local function deleteConfig(name)
+    if name == "" then return end
+    pcall(function()
+        delfile(configFolder .. "/" .. name .. ".json")
+    end)
+end
+
+local function refreshConfigs()
+    for _, child in pairs(configListFrame:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    
+    if not isfolder(configFolder) then
+        makefolder(configFolder)
+    end
+    
+    local configs = listfiles(configFolder)
+    for _, path in pairs(configs) do
+        local name = path:match("([^/\\]+)%.json$")
+        if name then
+            local btn = Instance.new("TextButton", configListFrame)
+            btn.Size = UDim2.new(1, 0, 0, 28)
+            btn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+            btn.BorderSizePixel = 0
+            btn.Text = "  " .. name
+            btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+            btn.Font = Enum.Font.Code
+            btn.TextSize = 11
+            btn.TextXAlignment = Enum.TextXAlignment.Left
+            
+            btn.MouseButton1Click:Connect(function()
+                selectedConfig = name
+                configNameBox.Text = "  " .. name
+                for _, b in pairs(configListFrame:GetChildren()) do
+                    if b:IsA("TextButton") then
+                        b.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+                    end
+                end
+                btn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+            end)
+        end
+    end
+end
+
+local createBtn = Instance.new("TextButton", configPage)
+createBtn.Size = UDim2.new(1, 0, 0, 32)
+createBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+createBtn.Text = "  create config"
+createBtn.Font = Enum.Font.Code
+createBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+createBtn.TextSize = 12
+createBtn.TextXAlignment = Enum.TextXAlignment.Left
+createBtn.MouseButton1Click:Connect(function()
+    local name = configNameBox.Text:gsub("^%s+", ""):gsub("%s+$", "")
+    if name ~= "" and name ~= "config name..." then
+        saveConfig(name)
+        refreshConfigs()
+    end
+end)
+
+local saveBtn = Instance.new("TextButton", configPage)
+saveBtn.Size = UDim2.new(1, 0, 0, 32)
+saveBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+saveBtn.Text = "  save config"
+saveBtn.Font = Enum.Font.Code
+saveBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+saveBtn.TextSize = 12
+saveBtn.TextXAlignment = Enum.TextXAlignment.Left
+saveBtn.MouseButton1Click:Connect(function()
+    if selectedConfig ~= "" then
+        saveConfig(selectedConfig)
+    end
+end)
+
+local loadBtn = Instance.new("TextButton", configPage)
+loadBtn.Size = UDim2.new(1, 0, 0, 32)
+loadBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+loadBtn.Text = "  load config"
+loadBtn.Font = Enum.Font.Code
+loadBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+loadBtn.TextSize = 12
+loadBtn.TextXAlignment = Enum.TextXAlignment.Left
+loadBtn.MouseButton1Click:Connect(function()
+    if selectedConfig ~= "" then
+        loadConfig(selectedConfig)
+    end
+end)
+
+local deleteBtn = Instance.new("TextButton", configPage)
+deleteBtn.Size = UDim2.new(1, 0, 0, 32)
+deleteBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+deleteBtn.Text = "  delete config"
+deleteBtn.Font = Enum.Font.Code
+deleteBtn.TextColor3 = Color3.new(1, 0.4, 0.4)
+deleteBtn.TextSize = 12
+deleteBtn.TextXAlignment = Enum.TextXAlignment.Left
+deleteBtn.MouseButton1Click:Connect(function()
+    if selectedConfig ~= "" then
+        deleteConfig(selectedConfig)
+        selectedConfig = ""
+        configNameBox.Text = "  config name..."
+        refreshConfigs()
+    end
+end)
+
+local refreshBtn = Instance.new("TextButton", configPage)
+refreshBtn.Size = UDim2.new(1, 0, 0, 32)
+refreshBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+refreshBtn.Text = "  refresh configs"
+refreshBtn.Font = Enum.Font.Code
+refreshBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+refreshBtn.TextSize = 12
+refreshBtn.TextXAlignment = Enum.TextXAlignment.Left
+refreshBtn.MouseButton1Click:Connect(function()
+    refreshConfigs()
+end)
+
+refreshConfigs()
+
+local function createESP(player)
+    if player == lp then return end
+    local function setupGui(character)
+        if State.Unloaded then return end
+        local head = character:WaitForChild("Head", 10)
+        if not head then return end
+        local b = Instance.new("BillboardGui", head)
+        b.Name = "DinoESP"
+        b.Adornee = head
+        b.Size = UDim2.new(0, 300, 0, 250)
+        b.StudsOffset = Vector3.new(0, 5, 0)
+        b.AlwaysOnTop = true
+        
+        local l = Instance.new("TextLabel", b)
+        l.BackgroundTransparency = 1
+        l.Size = UDim2.new(1, 0, 1, 0)
+        l.TextColor3 = Color3.new(1, 1, 1)
+        l.TextSize = 13
+        l.Font = Enum.Font.Code
+        l.TextYAlignment = Enum.TextYAlignment.Top
+        l.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local lastUpdate = 0
+        local c; c = RunService.RenderStepped:Connect(function()
+            if State.Unloaded or not b.Parent then c:Disconnect() return end
+            
+            local now = tick()
+            if now - lastUpdate < 0.1 then return end
+            lastUpdate = now
+            
+            if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") and head then
+                local dist = (lp.Character.HumanoidRootPart.Position - head.Position).Magnitude
+                if dist > State.ESP.MaxDistance then
+                    b.Enabled = false
+                    return
+                end
+            end
+            
+            b.Enabled = State.ESP.Enabled
+            if not State.ESP.Enabled then return end
+            
+            local info = character:FindFirstChild("CreatureInfo")
+            local surv = info and info:FindFirstChild("Survival")
+            local combat = info and info:FindFirstChild("Combat")
+            
+            if not surv then return end
+            
+            local lines = {}
+            
+            if State.ESP.ShowPlayerName then
+                local playerObj = game.Players:GetPlayerFromCharacter(character)
+                if playerObj then
+                    table.insert(lines, "Player: " .. playerObj.Name)
+                end
+            end
+            
+            if State.ESP.ShowDinoName and character:FindFirstChild("CreatureName") then
+                table.insert(lines, "Dino: " .. character.CreatureName.Value)
+            end
+            
+            if State.ESP.ShowGrowth then
+                table.insert(lines, string.format("Growth: %.2f%%", surv.Growth.Value))
+            end
+            
+            if State.ESP.ShowHP and character:FindFirstChild("Humanoid") then
+                local hum = character.Humanoid
+                local hpPercent = hum.Health / hum.MaxHealth
+                local actualHP = math.floor(hpPercent * 1000)
+                table.insert(lines, string.format("HP: %d (%.1f%%)", actualHP, hpPercent * 100))
+            end
+            
+            if State.ESP.ShowBlood then
+                table.insert(lines, string.format("Blood: %.2f%%", surv.Blood.Value))
+            end
+            
+            if State.ESP.ShowHunger then
+                local maxHunger = surv:FindFirstChild("MaxHunger")
+                if maxHunger then
+                    table.insert(lines, string.format("Hunger: %d/%d", math.floor(surv.Hunger.Value), math.floor(maxHunger.Value)))
+                else
+                    table.insert(lines, string.format("Hunger: %.2f%%", surv.Hunger.Value))
+                end
+            end
+            
+            if State.ESP.ShowThirst then
+                local maxThirst = surv:FindFirstChild("MaxThirst")
+                if maxThirst then
+                    table.insert(lines, string.format("Thirst: %d/%d", math.floor(surv.Thirst.Value), math.floor(maxThirst.Value)))
+                else
+                    table.insert(lines, string.format("Thirst: %.2f", surv.Thirst.Value))
+                end
+            end
+            
+            if State.ESP.ShowEnergy then
+                table.insert(lines, string.format("Energy: %d/%d", math.floor(surv.Energy.Value), math.floor(surv.MaxEnergy.Value)))
+            end
+            
+            if State.ESP.ShowOxygen then
+                table.insert(lines, string.format("Oxygen: %d/%d", math.floor(surv.Oxygen.Value), math.floor(surv.MaxOxygen.Value)))
+            end
+            
+            if State.ESP.ShowHeadFracture then
+                table.insert(lines, string.format("Head Fracture: %.2f%%", surv.HeadFracture.Value))
+            end
+            
+            if State.ESP.ShowLegFracture then
+                table.insert(lines, string.format("Leg Fracture: %.2f%%", surv.LegFracture.Value))
+            end
+            
+            if State.ESP.ShowStress then
+                table.insert(lines, string.format("Stress: %.2f%%", surv.Stress.Value))
+            end
+            
+            l.Text = table.concat(lines, "\n")
+        end)
+        table.insert(Connections, c)
+    end
+    player.CharacterAdded:Connect(setupGui)
+    if player.Character then setupGui(player.Character) end
+end
+
+for _, p in pairs(game.Players:GetPlayers()) do createESP(p) end
+game.Players.PlayerAdded:Connect(createESP)
+
+local fallDamageRemoved = false
+
+task.spawn(function()
+    while not State.Unloaded do
+        task.wait(2)
+        if State.Exploits.NoFallDamage then
+            local rs = game:GetService("ReplicatedStorage")
+            if rs:FindFirstChild("FallDamage") then
+                rs.FallDamage:Destroy()
+            end
+        end
+        
+        if State.Exploits.BlockPivot then
+            local rs = game:GetService("ReplicatedStorage")
+            local pivot = rs:FindFirstChild("Pivot")
+            if pivot then
+                local oldFireServer = pivot.FireServer
+                pivot.FireServer = function() end
+            end
+        end
+    end
+end)
+
+local heartbeatConn = RunService.Heartbeat:Connect(function()
+    if State.Unloaded then return end
+    
+    if lp.Character then
+        if State.Hitbox.Enabled and lp.Character:FindFirstChild("AttackPart") then
+            local p = lp.Character.AttackPart
+            p.Size = Vector3.new(State.Hitbox.X, State.Hitbox.Y, State.Hitbox.Z)
+            p.Transparency = State.Hitbox.Transparency
+            p.CanCollide = false
+        end
+    end
+    
+    if State.World.Enabled then
+        local Lighting = game:GetService("Lighting")
+        
+        if State.World.Atmosphere.Enabled then
+            local atm = Lighting:FindFirstChildOfClass("Atmosphere")
+            if not atm then
+                atm = Instance.new("Atmosphere", Lighting)
+            end
+            atm.Density = State.World.Atmosphere.Density
+            atm.Offset = State.World.Atmosphere.Offset
+            atm.Haze = State.World.Atmosphere.Haze
+        end
+        
+        local cc = Lighting:FindFirstChildOfClass("ColorCorrectionEffect")
+        if not cc then
+            cc = Instance.new("ColorCorrectionEffect", Lighting)
+        end
+        cc.Enabled = State.World.ColorCorrection.Enabled
+        if State.World.ColorCorrection.Enabled then
+            cc.Brightness = State.World.ColorCorrection.Brightness
+            cc.Contrast = State.World.ColorCorrection.Contrast
+            cc.Saturation = State.World.ColorCorrection.Saturation
+        end
+        
+        local blur = Lighting:FindFirstChildOfClass("BlurEffect")
+        if not blur then
+            blur = Instance.new("BlurEffect", Lighting)
+        end
+        blur.Enabled = State.World.Blur.Enabled
+        if State.World.Blur.Enabled then
+            blur.Size = State.World.Blur.Size
+        end
+        
+        local bloom = Lighting:FindFirstChildOfClass("BloomEffect")
+        if not bloom then
+            bloom = Instance.new("BloomEffect", Lighting)
+        end
+        bloom.Enabled = State.World.Bloom.Enabled
+        if State.World.Bloom.Enabled then
+            bloom.Intensity = State.World.Bloom.Intensity
+            bloom.Size = State.World.Bloom.Size
+            bloom.Threshold = State.World.Bloom.Threshold
+        end
+        
+        if State.World.TimeOfDay.Enabled then
+            Lighting.ClockTime = State.World.TimeOfDay.Hour
+        end
+    end
+end)
+table.insert(Connections, heartbeatConn)
+
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+Header.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = i.Position
+        startPos = Main.Position
+    end
+end)
+
+local dragConn = UserInputService.InputChanged:Connect(function(i)
+    if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = i.Position - dragStart
+        Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+table.insert(Connections, dragConn)
+
+local dragEndConn = UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then 
+        dragging = false 
+    end
+end)
+table.insert(Connections, dragEndConn)
+
+local keybindConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == State.Bind and input.UserInputType == Enum.UserInputType.Keyboard then
+        State.Visible = not State.Visible
+        Main.Visible = State.Visible
+    end
+end)
+table.insert(Connections, keybindConn)
